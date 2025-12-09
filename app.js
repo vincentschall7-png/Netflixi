@@ -1,0 +1,429 @@
+// ============================================
+// CONSTANTS & STATE
+// ============================================
+const CORRECT_PASSWORD = 'derkomische';
+const STORAGE_KEY = 'netflixe_videos';
+
+let videos = [];
+let currentVideoIndex = null;
+
+// ============================================
+// DOM ELEMENTS
+// ============================================
+const uploadBtn = document.getElementById('uploadBtn');
+const uploadModal = document.getElementById('uploadModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const passwordInput = document.getElementById('passwordInput');
+const verifyPasswordBtn = document.getElementById('verifyPasswordBtn');
+const passwordError = document.getElementById('passwordError');
+const passwordStep = document.getElementById('passwordStep');
+const uploadStep = document.getElementById('uploadStep');
+const videoName = document.getElementById('videoName');
+const videoFile = document.getElementById('videoFile');
+const videoChunks = document.getElementById('videoChunks');
+const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+const videoGallery = document.getElementById('videoGallery');
+const videoPlayer = document.getElementById('videoPlayer');
+const playerSection = document.getElementById('playerSection');
+const currentVideoTitle = document.getElementById('currentVideoTitle');
+const speedSlider = document.getElementById('speedSlider');
+const speedDisplay = document.getElementById('speedDisplay');
+const closePlayerBtn = document.getElementById('closePlayerBtn');
+const singleUploadDiv = document.getElementById('singleUploadDiv');
+const chunkUploadDiv = document.getElementById('chunkUploadDiv');
+const fileNameDisplay = document.getElementById('fileNameDisplay');
+const chunksNameDisplay = document.getElementById('chunksNameDisplay');
+const chunksList = document.getElementById('chunksList');
+const uploadProgress = document.getElementById('uploadProgress');
+const progressFill = document.getElementById('progressFill');
+const progressText = document.getElementById('progressText');
+
+// ============================================
+// INITIALIZATION
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadVideos();
+    renderGallery();
+    setupEventListeners();
+});
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+function setupEventListeners() {
+    // Modal controls
+    uploadBtn.addEventListener('click', openModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    uploadModal.querySelector('.modal-overlay').addEventListener('click', closeModal);
+    
+    // Password verification
+    verifyPasswordBtn.addEventListener('click', verifyPassword);
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') verifyPassword();
+    });
+    
+    // Upload method toggle
+    document.querySelectorAll('input[name="uploadMethod"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'single') {
+                singleUploadDiv.classList.remove('hidden');
+                chunkUploadDiv.classList.add('hidden');
+            } else {
+                singleUploadDiv.classList.add('hidden');
+                chunkUploadDiv.classList.remove('hidden');
+            }
+        });
+    });
+    
+    // File selection
+    videoFile.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            fileNameDisplay.textContent = e.target.files[0].name;
+        }
+    });
+    
+    videoChunks.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            chunksNameDisplay.textContent = `${e.target.files.length} Dateien ausgewählt`;
+            displayChunksList(e.target.files);
+        }
+    });
+    
+    // File label clicks
+    document.querySelector('label[for="videoFile"]').addEventListener('click', () => {
+        videoFile.click();
+    });
+    
+    document.querySelector('label[for="videoChunks"]').addEventListener('click', () => {
+        videoChunks.click();
+    });
+    
+    // Upload button
+    uploadVideoBtn.addEventListener('click', handleUpload);
+    
+    // Player controls
+    speedSlider.addEventListener('input', updatePlaybackSpeed);
+    closePlayerBtn.addEventListener('click', closePlayer);
+}
+
+// ============================================
+// MODAL FUNCTIONS
+// ============================================
+function openModal() {
+    uploadModal.classList.remove('hidden');
+    resetModal();
+}
+
+function closeModal() {
+    uploadModal.classList.add('hidden');
+    resetModal();
+}
+
+function resetModal() {
+    passwordStep.classList.remove('hidden');
+    uploadStep.classList.add('hidden');
+    passwordInput.value = '';
+    passwordError.classList.add('hidden');
+    videoName.value = '';
+    videoFile.value = '';
+    videoChunks.value = '';
+    fileNameDisplay.textContent = 'Video auswählen...';
+    chunksNameDisplay.textContent = 'Video-Teile auswählen...';
+    chunksList.innerHTML = '';
+    uploadProgress.classList.add('hidden');
+    progressFill.style.width = '0%';
+    progressText.textContent = '0%';
+    document.querySelector('input[name="uploadMethod"][value="single"]').checked = true;
+    singleUploadDiv.classList.remove('hidden');
+    chunkUploadDiv.classList.add('hidden');
+}
+
+function verifyPassword() {
+    const password = passwordInput.value;
+    if (password === CORRECT_PASSWORD) {
+        passwordStep.classList.add('hidden');
+        uploadStep.classList.remove('hidden');
+        passwordError.classList.add('hidden');
+    } else {
+        passwordError.classList.remove('hidden');
+        passwordInput.value = '';
+        passwordInput.focus();
+    }
+}
+
+// ============================================
+// UPLOAD FUNCTIONS
+// ============================================
+function displayChunksList(files) {
+    const fileNames = Array.from(files).map(f => f.name).join(', ');
+    chunksList.textContent = `Ausgewählte Dateien: ${fileNames}`;
+}
+
+async function handleUpload() {
+    const name = videoName.value.trim();
+    if (!name) {
+        alert('Bitte geben Sie einen Video-Namen ein!');
+        return;
+    }
+    
+    const uploadMethod = document.querySelector('input[name="uploadMethod"]:checked').value;
+    
+    try {
+        uploadProgress.classList.remove('hidden');
+        uploadVideoBtn.disabled = true;
+        
+        let videoBlob;
+        
+        if (uploadMethod === 'single') {
+            if (!videoFile.files.length) {
+                alert('Bitte wählen Sie eine Video-Datei aus!');
+                uploadVideoBtn.disabled = false;
+                return;
+            }
+            videoBlob = videoFile.files[0];
+            updateProgress(50);
+        } else {
+            if (!videoChunks.files.length) {
+                alert('Bitte wählen Sie Video-Teile aus!');
+                uploadVideoBtn.disabled = false;
+                return;
+            }
+            videoBlob = await mergeVideoChunks(videoChunks.files);
+        }
+        
+        updateProgress(75);
+        await saveVideo(name, videoBlob);
+        updateProgress(100);
+        
+        setTimeout(() => {
+            closeModal();
+            renderGallery();
+            uploadVideoBtn.disabled = false;
+        }, 500);
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('Fehler beim Hochladen: ' + error.message);
+        uploadVideoBtn.disabled = false;
+        uploadProgress.classList.add('hidden');
+    }
+}
+
+async function mergeVideoChunks(files) {
+    const chunks = Array.from(files).sort((a, b) => a.name.localeCompare(b.name));
+    const totalChunks = chunks.length;
+    
+    const blobs = [];
+    for (let i = 0; i < totalChunks; i++) {
+        const chunk = chunks[i];
+        blobs.push(chunk);
+        updateProgress(25 + (i / totalChunks) * 50);
+    }
+    
+    const mergedBlob = new Blob(blobs, { type: 'video/mp4' });
+    return mergedBlob;
+}
+
+function updateProgress(percent) {
+    progressFill.style.width = percent + '%';
+    progressText.textContent = Math.round(percent) + '%';
+}
+
+// ============================================
+// STORAGE FUNCTIONS
+// ============================================
+async function saveVideo(name, videoBlob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            try {
+                const videoData = {
+                    id: Date.now(),
+                    name: name,
+                    data: e.target.result,
+                    type: videoBlob.type,
+                    size: videoBlob.size,
+                    uploadDate: new Date().toISOString()
+                };
+                
+                videos.push(videoData);
+                
+                // Save to localStorage
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+                    resolve();
+                } catch (storageError) {
+                    // If localStorage is full, try to use IndexedDB as fallback
+                    console.warn('localStorage full, using IndexedDB:', storageError);
+                    saveToIndexedDB(videoData).then(resolve).catch(reject);
+                }
+            } catch (error) {
+                reject(error);
+            }
+        };
+        
+        reader.onerror = function(error) {
+            reject(error);
+        };
+        
+        reader.readAsDataURL(videoBlob);
+    });
+}
+
+function loadVideos() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            videos = JSON.parse(stored);
+        }
+    } catch (error) {
+        console.error('Error loading videos:', error);
+        videos = [];
+    }
+}
+
+function deleteVideo(id) {
+    if (!confirm('Möchten Sie dieses Video wirklich löschen?')) {
+        return;
+    }
+    
+    videos = videos.filter(v => v.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+    
+    if (currentVideoIndex !== null && videos[currentVideoIndex]?.id === id) {
+        closePlayer();
+    }
+    
+    renderGallery();
+}
+
+// ============================================
+// GALLERY FUNCTIONS
+// ============================================
+function renderGallery() {
+    if (videos.length === 0) {
+        videoGallery.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📹</div>
+                <p>Noch keine Videos hochgeladen</p>
+                <p class="empty-hint">Klicken Sie auf "Video hochladen", um zu beginnen</p>
+            </div>
+        `;
+        return;
+    }
+    
+    videoGallery.innerHTML = videos.map((video, index) => `
+        <div class="video-card" data-index="${index}">
+            <video class="video-thumbnail" src="${video.data}" muted></video>
+            <div class="video-info">
+                <h3>${escapeHtml(video.name)}</h3>
+                <div class="video-meta">
+                    <span>${formatFileSize(video.size)}</span>
+                    <button class="delete-btn" data-id="${video.id}" title="Löschen">🗑️</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    // Add event listeners
+    document.querySelectorAll('.video-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('delete-btn')) {
+                const index = parseInt(card.dataset.index);
+                playVideo(index);
+            }
+        });
+        
+        // Generate thumbnail
+        const thumbnail = card.querySelector('.video-thumbnail');
+        thumbnail.currentTime = 1; // Show frame at 1 second
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            deleteVideo(id);
+        });
+    });
+}
+
+// ============================================
+// PLAYER FUNCTIONS
+// ============================================
+function playVideo(index) {
+    if (index < 0 || index >= videos.length) return;
+    
+    currentVideoIndex = index;
+    const video = videos[index];
+    
+    videoPlayer.src = video.data;
+    currentVideoTitle.textContent = video.name;
+    playerSection.classList.remove('hidden');
+    
+    // Scroll to player
+    playerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Play video
+    videoPlayer.play().catch(error => {
+        console.error('Error playing video:', error);
+    });
+}
+
+function closePlayer() {
+    videoPlayer.pause();
+    videoPlayer.src = '';
+    playerSection.classList.add('hidden');
+    currentVideoIndex = null;
+}
+
+function updatePlaybackSpeed() {
+    const speed = speedSlider.value / 100;
+    videoPlayer.playbackRate = speed;
+    speedDisplay.textContent = speed.toFixed(2) + 'x';
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================
+// INDEXEDDB FALLBACK (for larger videos)
+// ============================================
+function saveToIndexedDB(videoData) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('NetflixeDB', 1);
+        
+        request.onerror = () => reject(request.error);
+        
+        request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction(['videos'], 'readwrite');
+            const store = transaction.objectStore('videos');
+            store.add(videoData);
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error);
+        };
+        
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('videos')) {
+                db.createObjectStore('videos', { keyPath: 'id' });
+            }
+        };
+    });
+}

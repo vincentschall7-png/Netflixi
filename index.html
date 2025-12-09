@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflixe - Video Platform</title>
+    <meta name="description" content="Eine moderne Video-Plattform zum Hochladen und Ansehen von Videos mit variabler Geschwindigkeit">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <span class="logo-icon">▶</span>
+                Netflixe
+            </h1>
+            <button id="uploadBtn" class="btn-primary">
+                <span class="btn-icon">+</span>
+                Video hochladen
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Video Player Section -->
+            <section id="playerSection" class="player-section hidden">
+                <div class="player-wrapper">
+                    <video id="videoPlayer" class="video-player" controls></video>
+                    <div class="player-controls">
+                        <div class="control-group">
+                            <h2 id="currentVideoTitle" class="video-title">Video Title</h2>
+                            <div class="speed-control">
+                                <label for="speedSlider">Geschwindigkeit:</label>
+                                <input type="range" id="speedSlider" min="25" max="1000" value="100" step="25">
+                                <span id="speedDisplay" class="speed-display">1.0x</span>
+                            </div>
+                        </div>
+                        <button id="closePlayerBtn" class="btn-secondary">Schließen</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Video Gallery -->
+            <section class="gallery-section">
+                <h2 class="section-title">Video-Bibliothek</h2>
+                <div id="videoGallery" class="video-gallery">
+                    <div class="empty-state">
+                        <div class="empty-icon">📹</div>
+                        <p>Noch keine Videos hochgeladen</p>
+                        <p class="empty-hint">Klicken Sie auf "Video hochladen", um zu beginnen</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Video hochladen</h2>
+                <button id="closeModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Password Step -->
+                <div id="passwordStep" class="upload-step">
+                    <label for="passwordInput">Passwort eingeben:</label>
+                    <input type="password" id="passwordInput" placeholder="Passwort" autocomplete="off">
+                    <p id="passwordError" class="error-message hidden">Falsches Passwort!</p>
+                    <button id="verifyPasswordBtn" class="btn-primary">Bestätigen</button>
+                </div>
+
+                <!-- Upload Step -->
+                <div id="uploadStep" class="upload-step hidden">
+                    <div class="form-group">
+                        <label for="videoName">Video-Name:</label>
+                        <input type="text" id="videoName" placeholder="Geben Sie einen Namen ein" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload-Methode:</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="uploadMethod" value="single" checked>
+                                <span>Einzelnes Video</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="uploadMethod" value="chunks">
+                                <span>Video in Teilen (für große Dateien)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Single Upload -->
+                    <div id="singleUploadDiv" class="form-group">
+                        <label for="videoFile" class="file-label">
+                            <span class="file-icon">📁</span>
+                            <span id="fileNameDisplay">Video auswählen...</span>
+                        </label>
+                        <input type="file" id="videoFile" accept="video/*" hidden>
+                    </div>
+
+                    <!-- Chunk Upload -->
+                    <div id="chunkUploadDiv" class="form-group hidden">
+                        <label for="videoChunks" class="file-label">
+                            <span class="file-icon">📁</span>
+                            <span id="chunksNameDisplay">Video-Teile auswählen...</span>
+                        </label>
+                        <input type="file" id="videoChunks" accept="video/*" multiple hidden>
+                        <div id="chunksList" class="chunks-list"></div>
+                    </div>
+
+                    <div id="uploadProgress" class="progress-container hidden">
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                        <p id="progressText" class="progress-text">0%</p>
+                    </div>
+
+                    <button id="uploadVideoBtn" class="btn-primary">Hochladen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
