@@ -426,7 +426,12 @@ async function deleteVideo(id) {
 // GALLERY FUNCTIONS
 // ============================================
 function renderGallery() {
-    `n    // Filter videos by folder`n    const filteredVideos = currentFolderId`n        ? videos.filter(v => v.folderId === currentFolderId)`n: videos; `n    `n    if (filteredVideos.length === 0) {
+    // Filter videos by folder
+    const filteredVideos = currentFolderId
+        ? videos.filter(v => v.folderId === currentFolderId)
+        : videos;
+
+    if (filteredVideos.length === 0) {
         videoGallery.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📹</div>
