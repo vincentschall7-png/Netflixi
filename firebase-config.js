@@ -26,3 +26,4 @@ const videosStorageRef = storageRef.child('videos');
 
 // Firestore Collection Reference
 const videosCollection = db.collection('videos');
+const foldersCollection = db.collection('folders');

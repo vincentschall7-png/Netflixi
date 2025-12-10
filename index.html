@@ -22,45 +22,66 @@
                 <span class="logo-icon">▶</span>
                 Netflixe
             </h1>
-            <button id="uploadBtn" class="btn-primary">
-                <span class="btn-icon">+</span>
-                Video hochladen
-            </button>
+            <div class="header-buttons">
+                <button id="createFolderBtn" class="btn-secondary">
+                    <span class="btn-icon">📁</span>
+                    Ordner erstellen
+                </button>
+                <button id="uploadBtn" class="btn-primary">
+                    <span class="btn-icon">+</span>
+                    Video hochladen
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="container">
-            <!-- Video Player Section -->
-            <section id="playerSection" class="player-section hidden">
-                <div class="player-wrapper">
-                    <video id="videoPlayer" class="video-player" controls></video>
-                    <div class="player-controls">
-                        <div class="control-group">
-                            <h2 id="currentVideoTitle" class="video-title">Video Title</h2>
-                            <div class="speed-control">
-                                <label for="speedSlider">Geschwindigkeit:</label>
-                                <input type="range" id="speedSlider" min="25" max="1000" value="100" step="25">
-                                <span id="speedDisplay" class="speed-display">1.0x</span>
-                            </div>
-                        </div>
-                        <button id="closePlayerBtn" class="btn-secondary">Schließen</button>
+        <div class="content-wrapper">
+            <!-- Folder Sidebar -->
+            <aside class="folder-sidebar">
+                <h3 class="sidebar-title">Ordner</h3>
+                <div id="folderList" class="folder-list">
+                    <div class="folder-item active" data-folder-id="all">
+                        <span class="folder-icon">📂</span>
+                        <span class="folder-name">Alle Videos</span>
+                        <span id="allVideosCount" class="folder-count">0</span>
                     </div>
                 </div>
-            </section>
+            </aside>
 
-            <!-- Video Gallery -->
-            <section class="gallery-section">
-                <h2 class="section-title">Video-Bibliothek</h2>
-                <div id="videoGallery" class="video-gallery">
-                    <div class="empty-state">
-                        <div class="empty-icon">📹</div>
-                        <p>Noch keine Videos hochgeladen</p>
-                        <p class="empty-hint">Klicken Sie auf "Video hochladen", um zu beginnen</p>
+            <!-- Main Content Area -->
+            <div class="main-area">
+                <!-- Video Player Section -->
+                <section id="playerSection" class="player-section hidden">
+                    <div class="player-wrapper">
+                        <video id="videoPlayer" class="video-player" controls></video>
+                        <div class="player-controls">
+                            <div class="control-group">
+                                <h2 id="currentVideoTitle" class="video-title">Video Title</h2>
+                                <div class="speed-control">
+                                    <label for="speedSlider">Geschwindigkeit:</label>
+                                    <input type="range" id="speedSlider" min="25" max="1000" value="100" step="25">
+                                    <span id="speedDisplay" class="speed-display">1.0x</span>
+                                </div>
+                            </div>
+                            <button id="closePlayerBtn" class="btn-secondary">Schließen</button>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+
+                <!-- Video Gallery -->
+                <section class="gallery-section">
+                    <h2 id="currentFolderTitle" class="section-title">Alle Videos</h2>
+                    <div id="videoGallery" class="video-gallery">
+                        <div class="empty-state">
+                            <div class="empty-icon">📹</div>
+                            <p>Noch keine Videos hochgeladen</p>
+                            <p class="empty-hint">Klicken Sie auf "Video hochladen", um zu beginnen</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </div>
     </main>
 
@@ -86,6 +107,13 @@
                     <div class="form-group">
                         <label for="videoName">Video-Name:</label>
                         <input type="text" id="videoName" placeholder="Geben Sie einen Namen ein" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="folderSelect">Ordner:</label>
+                        <select id="folderSelect" class="folder-select">
+                            <option value="">Kein Ordner</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -130,6 +158,24 @@
 
                     <button id="uploadVideoBtn" class="btn-primary">Hochladen</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Folder Creation Modal -->
+    <div id="folderModal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Ordner erstellen</h2>
+                <button id="closeFolderModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="folderName">Ordner-Name:</label>
+                    <input type="text" id="folderName" placeholder="z.B. Filme, Serien, Tutorials" required autofocus>
+                </div>
+                <button id="createFolderSubmitBtn" class="btn-primary">Erstellen</button>
             </div>
         </div>
     </div>

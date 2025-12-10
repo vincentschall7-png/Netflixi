@@ -666,3 +666,159 @@ body {
         grid-template-columns: 1fr;
     }
 }
+ 
+ 
+/* ============================================
+   FOLDER SIDEBAR
+   ============================================ */
+.content-wrapper {
+    display: flex;
+    gap: var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.folder-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    height: fit-content;
+    position: sticky;
+    top: calc(80px + var(--spacing-md));
+}
+
+.sidebar-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.folder-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.folder-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    color: var(--text-secondary);
+    position: relative;
+}
+
+.folder-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.folder-item.active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    font-weight: 600;
+}
+
+.folder-icon {
+    font-size: 1.25rem;
+}
+
+.folder-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.folder-count {
+    font-size: 0.875rem;
+    opacity: 0.7;
+    font-weight: 600;
+}
+
+.folder-delete {
+    background: transparent;
+    border: none;
+    color: currentColor;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1rem;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.folder-item:hover .folder-delete {
+    opacity: 0.7;
+}
+
+.folder-delete:hover {
+    opacity: 1 !important;
+}
+
+.main-area {
+    flex: 1;
+    min-width: 0;
+}
+
+.header-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.modal-small .modal-content {
+    max-width: 400px;
+}
+
+.folder-select {
+    padding: 0.875rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    width: 100%;
+}
+
+.folder-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px hsla(var(--primary-hue), 85%, 55%, 0.1);
+}
+
+.folder-select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Responsive: Sidebar */
+@media (max-width: 1024px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+    
+    .folder-sidebar {
+        width: 100%;
+        position: static;
+    }
+    
+    .folder-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .folder-item {
+        flex: 0 0 auto;
+    }
+}
