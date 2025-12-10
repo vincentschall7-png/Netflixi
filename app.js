@@ -2,9 +2,11 @@
 // CONSTANTS & STATE
 // ============================================
 const CORRECT_PASSWORD = 'derkomische';
+const AUTH_SESSION_KEY = 'netflixe_authenticated';
 
 let videos = [];
 let currentVideoIndex = null;
+let isAuthenticated = false;
 
 // ============================================
 // DOM ELEMENTS
@@ -41,6 +43,7 @@ const progressText = document.getElementById('progressText');
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
+    checkAuthentication();
     loadVideos();
     setupEventListeners();
     setupRealtimeListener();
@@ -106,6 +109,22 @@ function setupEventListeners() {
 }
 
 // ============================================
+// AUTHENTICATION
+// ============================================
+function checkAuthentication() {
+    isAuthenticated = sessionStorage.getItem(AUTH_SESSION_KEY) === 'true';
+}
+
+function setAuthenticated(authenticated) {
+    isAuthenticated = authenticated;
+    if (authenticated) {
+        sessionStorage.setItem(AUTH_SESSION_KEY, 'true');
+    } else {
+        sessionStorage.removeItem(AUTH_SESSION_KEY);
+    }
+}
+
+// ============================================
 // FIREBASE REALTIME LISTENER
 // ============================================
 function setupRealtimeListener() {
@@ -130,6 +149,12 @@ function setupRealtimeListener() {
 function openModal() {
     uploadModal.classList.remove('hidden');
     resetModal();
+
+    // Skip password step if already authenticated
+    if (isAuthenticated) {
+        passwordStep.classList.add('hidden');
+        uploadStep.classList.remove('hidden');
+    }
 }
 
 function closeModal() {
@@ -159,6 +184,9 @@ function resetModal() {
 function verifyPassword() {
     const password = passwordInput.value;
     if (password === CORRECT_PASSWORD) {
+        // Set authentication for this session
+        setAuthenticated(true);
+
         passwordStep.classList.add('hidden');
         uploadStep.classList.remove('hidden');
         passwordError.classList.add('hidden');
@@ -252,6 +280,11 @@ function updateProgress(percent) {
 // ============================================
 async function uploadToFirebase(name, videoBlob) {
     try {
+        // Check if Firebase is configured
+        if (typeof firebase === 'undefined' || !firebase.apps || firebase.apps.length === 0) {
+            throw new Error('Firebase ist nicht konfiguriert!\n\nBitte folge der Anleitung in FIREBASE_SETUP.md um:\n1. Ein Firebase-Projekt zu erstellen\n2. Die Konfiguration in firebase-config.js einzufügen');
+        }
+
         // Generate unique ID for video
         const videoId = 'video_' + Date.now();
         const fileName = `${videoId}.mp4`;
@@ -329,6 +362,14 @@ async function loadVideos() {
 // DELETE VIDEO
 // ============================================
 async function deleteVideo(id) {
+    // Request password for delete
+    const password = prompt('Passwort zum Löschen eingeben:');
+
+    if (password !== CORRECT_PASSWORD) {
+        alert('Falsches Passwort!');
+        return;
+    }
+
     if (!confirm('Möchten Sie dieses Video wirklich löschen?')) {
         return;
     }
