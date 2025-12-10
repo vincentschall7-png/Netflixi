@@ -344,7 +344,7 @@ async function uploadToFirebase(name, videoBlob) {
                             name: name,
                             videoUrl: downloadURL,
                             size: videoBlob.size,
-                            uploadDate: firebase.firestore.FieldValue.serverTimestamp(),`n                            folderId: folderSelect.value || null,
+                            uploadDate: firebase.firestore.FieldValue.serverTimestamp(),`r`n                            folderId: folderSelect.value || null,
                             fileName: fileName
                         });
 
@@ -763,5 +763,6 @@ function updateFolderDropdown() {
         folderSelect.appendChild(option);
     });
 }
+
 
 
