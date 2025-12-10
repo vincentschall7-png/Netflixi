@@ -1,4 +1,4 @@
-// ============================================
+ï»¿// ============================================
 // CONSTANTS & STATE
 // ============================================
 const CORRECT_PASSWORD = 'derkomische';
@@ -344,7 +344,7 @@ async function uploadToFirebase(name, videoBlob) {
                             name: name,
                             videoUrl: downloadURL,
                             size: videoBlob.size,
-                            uploadDate: firebase.firestore.FieldValue.serverTimestamp(),
+                            uploadDate: firebase.firestore.FieldValue.serverTimestamp(),`n                            folderId: folderSelect.value || null,
                             fileName: fileName
                         });
 
@@ -424,8 +424,7 @@ async function deleteVideo(id) {
 // ============================================
 // GALLERY FUNCTIONS
 // ============================================
-function renderGallery() {
-    if (videos.length === 0) {
+function renderGallery() {`n    // Filter videos by folder`n    const filteredVideos = currentFolderId `n        ? videos.filter(v => v.folderId === currentFolderId)`n        : videos;`n    `n    if (filteredVideos.length === 0) {
         videoGallery.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">ðŸ“¹</div>
@@ -436,7 +435,7 @@ function renderGallery() {
         return;
     }
 
-    videoGallery.innerHTML = videos.map((video, index) => `
+    videoGallery.innerHTML = filteredVideos.map((video, index) => `
         <div class="video-card" data-index="${index}">
             <video class="video-thumbnail" src="${video.videoUrl}" muted></video>
             <div class="video-info">
@@ -634,7 +633,7 @@ function renderFolderList() {
     folders.forEach(folder => {
         const folderItem = document.createElement('div');
         folderItem.className = 'folder-item';
-        folder Item.dataset.folderId = folder.id;
+        folderItem.dataset.folderId = folder.id;
         
         if (currentFolderId === folder.id) {
             folderItem.classList.add('active');
@@ -647,7 +646,7 @@ function renderFolderList() {
             <span class="folder-icon"></span>
             <span class="folder-name">\</span>
             <span class="folder-count">\</span>
-            <button class="folder-delete" data-folder-id="\" title="Löschen"></button>
+            <button class="folder-delete" data-folder-id="\" title="Lï¿½schen"></button>
         \;
         
         // Click to select folder
@@ -707,7 +706,7 @@ function selectFolder(folderId) {
 // Delete Folder
 async function deleteFolder(folderId) {
     // Request password
-    const password = prompt('Passwort zum Löschen des Ordners eingeben:');
+    const password = prompt('Passwort zum Lï¿½schen des Ordners eingeben:');
     
     if (password !== CORRECT_PASSWORD) {
         alert('Falsches Passwort!');
@@ -717,7 +716,7 @@ async function deleteFolder(folderId) {
     const folder = folders.find(f => f.id === folderId);
     const videoCount = videos.filter(v => v.folderId === folderId).length;
     
-    if (!confirm(\Ordner "\" und alle \ Videos darin wirklich löschen?\)) {
+    if (!confirm(\Ordner "\" und alle \ Videos darin wirklich lï¿½schen?\)) {
         return;
     }
     
@@ -745,7 +744,7 @@ async function deleteFolder(folderId) {
         }
     } catch (error) {
         console.error('Error deleting folder:', error);
-        alert('Fehler beim Löschen: ' + error.message);
+        alert('Fehler beim Lï¿½schen: ' + error.message);
     }
 }
 
@@ -764,3 +763,5 @@ function updateFolderDropdown() {
         folderSelect.appendChild(option);
     });
 }
+
+
