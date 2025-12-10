@@ -344,7 +344,8 @@ async function uploadToFirebase(name, videoBlob) {
                             name: name,
                             videoUrl: downloadURL,
                             size: videoBlob.size,
-                            uploadDate: firebase.firestore.FieldValue.serverTimestamp(),`r`n                            folderId: folderSelect.value || null,
+                            uploadDate: firebase.firestore.FieldValue.serverTimestamp(),
+                            folderId: folderSelect.value || null,
                             fileName: fileName
                         });
 
@@ -424,7 +425,8 @@ async function deleteVideo(id) {
 // ============================================
 // GALLERY FUNCTIONS
 // ============================================
-function renderGallery() {`n    // Filter videos by folder`n    const filteredVideos = currentFolderId `n        ? videos.filter(v => v.folderId === currentFolderId)`n        : videos;`n    `n    if (filteredVideos.length === 0) {
+function renderGallery() {
+    `n    // Filter videos by folder`n    const filteredVideos = currentFolderId`n        ? videos.filter(v => v.folderId === currentFolderId)`n: videos; `n    `n    if (filteredVideos.length === 0) {
         videoGallery.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📹</div>
@@ -535,7 +537,7 @@ function openFolderModal() {
         openModal();
         return;
     }
-    
+
     folderModal.classList.remove('hidden');
     folderName.value = '';
     folderName.focus();
@@ -549,23 +551,23 @@ function closeFolderModal() {
 // Create Folder
 async function handleCreateFolder() {
     const name = folderName.value.trim();
-    
+
     if (!name) {
         alert('Bitte geben Sie einen Ordner-Namen ein!');
         return;
     }
-    
+
     try {
         createFolderSubmitBtn.disabled = true;
-        
+
         const newFolder = {
             name: name,
             createdDate: firebase.firestore.FieldValue.serverTimestamp(),
             videoCount: 0
         };
-        
+
         await foldersCollection.add(newFolder);
-        
+
         closeFolderModal();
         createFolderSubmitBtn.disabled = false;
     } catch (error) {
@@ -617,55 +619,55 @@ function setupFolderRealtimeListener() {
 function renderFolderList() {
     // Keep "Alle Videos" item
     const allVideosItem = folderList.querySelector('[data-folder-id="all"]');
-    
+
     // Clear folder list but keep "Alle Videos"
     folderList.innerHTML = '';
     if (allVideosItem) {
         folderList.appendChild(allVideosItem);
     }
-    
+
     // Update "Alle Videos" count
     if (allVideosCount) {
         allVideosCount.textContent = videos.length;
     }
-    
+
     // Add folders
     folders.forEach(folder => {
         const folderItem = document.createElement('div');
         folderItem.className = 'folder-item';
         folderItem.dataset.folderId = folder.id;
-        
+
         if (currentFolderId === folder.id) {
             folderItem.classList.add('active');
         }
-        
+
         // Count videos in this folder
         const count = videos.filter(v => v.folderId === folder.id).length;
-        
-        folderItem.innerHTML = \
-            <span class="folder-icon"></span>
-            <span class="folder-name">\</span>
-            <span class="folder-count">\</span>
-            <button class="folder-delete" data-folder-id="\" title="L�schen"></button>
-        \;
-        
+
+        folderItem.innerHTML = `
+            <span class="folder-icon">📁</span>
+            <span class="folder-name">${escapeHtml(folder.name)}</span>
+            <span class="folder-count">${count}</span>
+            <button class="folder-delete" data-folder-id="${folder.id}" title="Löschen">🗑️</button>
+        `;
+
         // Click to select folder
         folderItem.addEventListener('click', (e) => {
             if (!e.target.classList.contains('folder-delete')) {
                 selectFolder(folder.id);
             }
         });
-        
+
         // Delete button
         const deleteBtn = folderItem.querySelector('.folder-delete');
         deleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteFolder(folder.id);
         });
-        
+
         folderList.appendChild(folderItem);
     });
-    
+
     // "Alle Videos" click handler
     if (allVideosItem) {
         allVideosItem.addEventListener('click', () => selectFolder(null));
@@ -675,20 +677,20 @@ function renderFolderList() {
 // Select Folder (Filter Videos)
 function selectFolder(folderId) {
     currentFolderId = folderId;
-    
+
     // Update active state
     document.querySelectorAll('.folder-item').forEach(item => {
         item.classList.remove('active');
     });
-    
-    const activeItem = folderId 
-        ? document.querySelector(\.folder-item[data-folder-id="\"]\)
+
+    const activeItem = folderId
+        ? document.querySelector(`.folder-item[data-folder-id="${folderId}"]`)
         : document.querySelector('.folder-item[data-folder-id="all"]');
-    
+
     if (activeItem) {
         activeItem.classList.add('active');
     }
-    
+
     // Update title
     if (folderId) {
         const folder = folders.find(f => f.id === folderId);
@@ -698,7 +700,7 @@ function selectFolder(folderId) {
     } else {
         currentFolderTitle.textContent = 'Alle Videos';
     }
-    
+
     // Re-render gallery with filter
     renderGallery();
 }
@@ -706,55 +708,55 @@ function selectFolder(folderId) {
 // Delete Folder
 async function deleteFolder(folderId) {
     // Request password
-    const password = prompt('Passwort zum L�schen des Ordners eingeben:');
-    
+    const password = prompt('Passwort zum Löschen des Ordners eingeben:');
+
     if (password !== CORRECT_PASSWORD) {
         alert('Falsches Passwort!');
         return;
     }
-    
+
     const folder = folders.find(f => f.id === folderId);
     const videoCount = videos.filter(v => v.folderId === folderId).length;
-    
-    if (!confirm(\Ordner "\" und alle \ Videos darin wirklich l�schen?\)) {
+
+    if (!confirm(`Ordner "${folder?.name}" und alle ${videoCount} Videos darin wirklich löschen?`)) {
         return;
     }
-    
+
     try {
         // Delete all videos in folder
         const videosInFolder = videos.filter(v => v.folderId === folderId);
-        
+
         for (const video of videosInFolder) {
             // Delete video from storage
             if (video.fileName) {
                 const videoRef = videosStorageRef.child(video.id).child(video.fileName);
                 await videoRef.delete().catch(err => console.warn('Video file not found:', err));
             }
-            
+
             // Delete from Firestore
             await videosCollection.doc(video.id).delete();
         }
-        
+
         // Delete folder
         await foldersCollection.doc(folderId).delete();
-        
+
         // If this was selected folder, go to "Alle"
         if (currentFolderId === folderId) {
             selectFolder(null);
         }
     } catch (error) {
         console.error('Error deleting folder:', error);
-        alert('Fehler beim L�schen: ' + error.message);
+        alert('Fehler beim Löschen: ' + error.message);
     }
 }
 
 // Update Folder Dropdown (in upload modal)
 function updateFolderDropdown() {
     if (!folderSelect) return;
-    
+
     // Clear and add default option
     folderSelect.innerHTML = '<option value="">Kein Ordner</option>';
-    
+
     // Add folders
     folders.forEach(folder => {
         const option = document.createElement('option');
@@ -763,6 +765,144 @@ function updateFolderDropdown() {
         folderSelect.appendChild(option);
     });
 }
+allVideosCount.textContent = videos.length;
+    }
+
+// Add folders
+folders.forEach(folder => {
+    const folderItem = document.createElement('div');
+    folderItem.className = 'folder-item';
+    folderItem.dataset.folderId = folder.id;
+
+    if (currentFolderId === folder.id) {
+        folderItem.classList.add('active');
+    }
+
+    // Count videos in this folder
+    const count = videos.filter(v => v.folderId === folder.id).length;
+
+    folderItem.innerHTML = \
+            <span class="folder-icon"></span>
+            <span class="folder-name">\</span>
+            <span class="folder-count">\</span>
+            <button class="folder-delete" data-folder-id="\" title="L�schen"></button>
+        \;
+
+    // Click to select folder
+    folderItem.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('folder-delete')) {
+            selectFolder(folder.id);
+        }
+    });
+
+    // Delete button
+    const deleteBtn = folderItem.querySelector('.folder-delete');
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteFolder(folder.id);
+    });
+
+    folderList.appendChild(folderItem);
+});
+
+// "Alle Videos" click handler
+if (allVideosItem) {
+    allVideosItem.addEventListener('click', () => selectFolder(null));
+}
+}
+
+// Select Folder (Filter Videos)
+function selectFolder(folderId) {
+    currentFolderId = folderId;
+
+    // Update active state
+    document.querySelectorAll('.folder-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    const activeItem = folderId
+        ? document.querySelector(\.folder - item[data - folder - id="\"]\)
+        : document.querySelector('.folder-item[data-folder-id="all"]');
+
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
+
+    // Update title
+    if (folderId) {
+        const folder = folders.find(f => f.id === folderId);
+        if (folder) {
+            currentFolderTitle.textContent = folder.name;
+        }
+    } else {
+        currentFolderTitle.textContent = 'Alle Videos';
+    }
+
+    // Re-render gallery with filter
+    renderGallery();
+}
+
+// Delete Folder
+async function deleteFolder(folderId) {
+    // Request password
+    const password = prompt('Passwort zum L�schen des Ordners eingeben:');
+
+    if (password !== CORRECT_PASSWORD) {
+        alert('Falsches Passwort!');
+        return;
+    }
+
+    const folder = folders.find(f => f.id === folderId);
+    const videoCount = videos.filter(v => v.folderId === folderId).length;
+
+    if (!confirm(\Ordner "\" und alle \ Videos darin wirklich l�schen?\)) {
+        return;
+}
+
+try {
+    // Delete all videos in folder
+    const videosInFolder = videos.filter(v => v.folderId === folderId);
+
+    for (const video of videosInFolder) {
+        // Delete video from storage
+        if (video.fileName) {
+            const videoRef = videosStorageRef.child(video.id).child(video.fileName);
+            await videoRef.delete().catch(err => console.warn('Video file not found:', err));
+        }
+
+        // Delete from Firestore
+        await videosCollection.doc(video.id).delete();
+    }
+
+    // Delete folder
+    await foldersCollection.doc(folderId).delete();
+
+    // If this was selected folder, go to "Alle"
+    if (currentFolderId === folderId) {
+        selectFolder(null);
+    }
+} catch (error) {
+    console.error('Error deleting folder:', error);
+    alert('Fehler beim L�schen: ' + error.message);
+}
+}
+
+// Update Folder Dropdown (in upload modal)
+function updateFolderDropdown() {
+    if (!folderSelect) return;
+
+    // Clear and add default option
+    folderSelect.innerHTML = '<option value="">Kein Ordner</option>';
+
+    // Add folders
+    folders.forEach(folder => {
+        const option = document.createElement('option');
+        option.value = folder.id;
+        option.textContent = folder.name;
+        folderSelect.appendChild(option);
+    });
+}
+
 
 
 
