@@ -5,12 +5,13 @@
 // Siehe FIREBASE_SETUP.md für Anleitung
 
 const firebaseConfig = {
-    apiKey: "DEIN-API-KEY",
-    authDomain: "dein-projekt.firebaseapp.com",
-    projectId: "dein-projekt-id",
-    storageBucket: "dein-projekt.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef"
+    apiKey: "AIzaSyDTjhUEI3-GqTqbaWx4SHblmy95RVNkCOw",
+    authDomain: "netflixe-59005.firebaseapp.com",
+    projectId: "netflixe-59005",
+    storageBucket: "netflixe-59005.firebasestorage.app",
+    messagingSenderId: "9902493784",
+    appId: "1:9902493784:web:76bf467fbaa11e7f427a2d",
+    measurementId: "G-B7EG0KCJFH"
 };
 
 // Firebase initialisieren
